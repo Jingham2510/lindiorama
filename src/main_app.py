@@ -35,6 +35,13 @@ class app(tk.Tk):
         self.switch_frame(Start_Window)
         self.start_time = time.time()
 
+        #Setup so escape key closes the program
+        self.bind("<Escape>", self.on_close)
+
+        #Hide the window bar and go fullscreen
+        self.attributes("-fullscreen", True)
+
+
     
     #Switches to the desired frame window
     def switch_frame(self, frame_class, *, arg = None):
@@ -72,7 +79,7 @@ class app(tk.Tk):
         return time.time() - self.start_time
     
     #Set the flag so that the program knows to close
-    def on_close(self):
+    def on_close(self, event):
         self.destroy()
         self.closed_flag = 1
 
@@ -88,8 +95,7 @@ class Start_Window(tk.Frame):
         self.master.start_time = time.time()
 
         #Set the background colour
-        self['bg'] = "deep sky blue" 
-        
+        self['bg'] = "deep sky blue"   
 
         
 
@@ -97,7 +103,7 @@ class Start_Window(tk.Frame):
         lin_pic_width = 300
         lin_pic_height = 250
         
-        img_filepath = os.getcwd() + "\\images\\lin_logo.jpg"
+        img_filepath = os.getcwd() + "/images/lin_logo.jpg"
         lin_img = Image.open(img_filepath)
         resized_lin_img = lin_img.resize((lin_pic_width, lin_pic_height))
         img2 = ImageTk.PhotoImage(resized_lin_img)
@@ -274,7 +280,7 @@ class Overview_Window(tk.Frame):
             
             #Place the image
             #Get the filepath of the image
-            filepath = base_filepath + "\\images\\" + self.images[i]            
+            filepath = base_filepath + "/images/" + self.images[i]            
             #Open the image and resize it 
             img = Image.open(filepath)
             resized_img = img.resize((100, 75), Image.Resampling.NEAREST)
