@@ -1,6 +1,6 @@
 """
 Author: Joe Ingham
-Last Updated: 05/12/2023
+Last Updated: 06/12/2023
 """
 
 import tkinter as tk
@@ -17,7 +17,7 @@ The main applet that controls the raspberry pi for the Alaris Linwave Diorama
 class app(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
-        self.protocol("WM_DELETE_WINDOW", self.on_close)
+        #self.protocol("WM_DELETE_WINDOW", self.on_close)
         self.closed_flag = 0
         #Set the CWD correctly (i.e. up one)
         os.chdir("../")  
@@ -38,8 +38,8 @@ class app(tk.Tk):
         #Setup so escape key closes the program
         self.bind("<Escape>", self.on_close)
 
-        #Hide the window bar and go fullscreen
-        self.attributes("-fullscreen", True)
+        #Hide the window bar and go fullscreen after 500ms
+        self.after(500, lambda: self.attributes("-fullscreen", True))
 
 
     
