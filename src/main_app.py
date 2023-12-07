@@ -46,26 +46,31 @@ class app(tk.Tk):
     #Switches to the desired frame window
     def switch_frame(self, frame_class, *, arg = None):
         
+        self.start_flag = 0
         
         #Create the class correctly
         match arg:
             #Sector overview page
+            
             case ("MARINE" | "AVIATION" | "DEFENCE" | "INDUSTRIAL" | "MEDICAL" | "SPACE") as s:
                 print("overview page")
                 new_frame = frame_class(self, s)
+                
             
             #Incase the capabilities and services page is different
             case("Capabilities") as s :
                 print("capabilities page")
                 new_frame = frame_class(self, s)
+                
 
             case("Return"):
                 print("Home page")
-                new_frame = frame_class(self)
+                new_frame = frame_class(self)                   
 
             case _:
-                new_frame = frame_class(self)      
-        
+                new_frame = frame_class(self)     
+                
+              
         
         #Destroys the current window
         if self._frame is not None:
@@ -76,7 +81,7 @@ class app(tk.Tk):
 
     #Get the current idle time on the page
     def get_idle_time(self):
-        return time.time() - self.start_time
+        return int(time.time() - self.start_time)
     
     #Set the flag so that the program knows to close
     def on_close(self, event):
@@ -93,44 +98,65 @@ class Start_Window(tk.Frame):
         tk.Frame.__init__(self, master)
         self.master = master
         self.master.start_time = time.time()
-
-        #Set the background colour
-        self['bg'] = "deep sky blue"   
+        self.master.start_flag = 1 
 
         
-
-        #Load the logo 
-        lin_pic_width = 300
-        lin_pic_height = 250
         
-        #On pi ~ img_filepath = "/home/pi/diorama_app/image/lin_logo.jpg"
+        #The filepath where the screensavers are saved
+        #On the Pi : /home/pi/diorama_app/images/Screemsavers/
+        ssavers_filepath = "P:/Joe/Python Scripts/diorama_app/images/Screensavers/"
 
-        img_filepath = os.getcwd() + "/images/lin_logo.jpg"
-        lin_img = Image.open(img_filepath)
-        resized_lin_img = lin_img.resize((lin_pic_width, lin_pic_height))
-        img2 = ImageTk.PhotoImage(resized_lin_img)
+        self.screensavers = [ f"{ssavers_filepath}{x}" for x in os.listdir(ssavers_filepath)]
+        print(self.screensavers)
 
-        #Place the Linwave Logo
-        lin_logo = tk.Label(self, image = img2)
-        self.grid_columnconfigure(1, weight = 1)
-        self.grid_rowconfigure(1, weight = 1)
-        lin_logo.image = img2
-        lin_logo.grid(row = 1, column = 1, pady = 2)
+        self.curr_ssaver_index = 0
+        image = Image.open(self.screensavers[self.curr_ssaver_index])
+        img2 = image.resize((self.winfo_width(), self.winfo_height()))
+        display = ImageTk.PhotoImage(img2)
+        self.curr_image = tk.Label(self, image = display)        
+        self.curr_image.image = display
+        self.curr_image.grid(row=0, column=0, sticky="NEWS")
+        
 
-        #Place the start button
-        start_button = tk.Label(self, text = "Press anywhere to start", bg = "deep sky blue")
-        start_button.grid(row = 2, column = 1)
+        self.start_menu_time = time.time()
 
-        #Setup the click event
-        self.bind("<Button-1>", self._start_action)
-        lin_logo.bind("<Button-1>", self._start_action)
-        start_button.bind("<Button-1>", self._start_action)
+       
+        self.curr_image.bind("<Button-1>", self._start_action)
 
 
     #Press start button to go to the main window
     def _start_action(self, event):
         print("chaging page")
         self.master.switch_frame(Main_Window)
+
+
+    def _next_image(self):
+        print("Next slide")
+
+        self.start_menu_time = time.time()
+
+        if self.curr_ssaver_index == len(self.screensavers) - 1:
+            self.curr_ssaver_index = 0            
+        else:
+            self.curr_ssaver_index = self.curr_ssaver_index + 1
+            
+
+        image = Image.open(self.screensavers[self.curr_ssaver_index])
+        img2 = image.resize((self.winfo_width(), self.winfo_height()))
+        display = ImageTk.PhotoImage(img2)
+        self.curr_image = tk.Label(self, image = display)        
+        self.curr_image.image = display
+        self.curr_image.grid(row=0, column=0, sticky="NEWS")
+        self.curr_image.bind("<Button-1>", self._start_action)
+
+        print(self.curr_image)
+
+    
+    #Return the time since the last screensaver cjagem
+    def start_menu_tot_time(self):
+        return int(time.time() - self.start_menu_time)
+
+                
 
 
   
@@ -375,8 +401,16 @@ if __name__ == "__main__":
         #Try and get the idle time - if not break the loop
         try:
             if app.closed_flag:
-                sys.exit()
+                sys.exit()           
 
+
+            #If on the main page - every 5 seconds change the image
+            if app.start_flag and (x := app._frame.start_menu_tot_time()) > 0 and x % 5 == 0:
+                print("CHANGE")
+                app._frame._next_image()
+
+
+            #If a button hasn't been pressed in 60 seconds
             if app.get_idle_time() > 60:
                 app.switch_frame(Start_Window)
                 start_time = time.time()           
