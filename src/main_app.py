@@ -1,14 +1,15 @@
 """
 Author: Joe Ingham
-Last Updated: 06/12/2023
+Last Updated: 07/12/2023
+Version: 0.6
 """
 
 import tkinter as tk
 from PIL import Image, ImageTk
-import page_handler as ph 
 import os
 import time
 import sys
+import platform
 
 """
 The main applet that controls the raspberry pi for the Alaris Linwave Diorama
@@ -16,11 +17,21 @@ The main applet that controls the raspberry pi for the Alaris Linwave Diorama
 
 class app(tk.Tk):
     def __init__(self):
+
+        #Check the 
+        if "Windows" in platform.platform():
+            print("Windows system")
+            self.base_filepath = "P:/Joe/Python Scripts/diorama_app"
+        else:
+            print("Raspbian system")
+            self.base_filepath = "/home/pi/diorama_app"
+
+
         tk.Tk.__init__(self)
         #self.protocol("WM_DELETE_WINDOW", self.on_close)
         self.closed_flag = 0
         #Set the CWD correctly (i.e. up one)
-        os.chdir("../")  
+
 
         #Setup the window
         self.title = ("Linwave Diorama App")
@@ -104,18 +115,19 @@ class Start_Window(tk.Frame):
         
         #The filepath where the screensavers are saved
         #On the Pi : /home/pi/diorama_app/images/Screemsavers/
-        ssavers_filepath = "P:/Joe/Python Scripts/diorama_app/images/Screensavers/"
+        ssavers_filepath = self.master.base_filepath + "/images/Screensavers/"
 
         self.screensavers = [ f"{ssavers_filepath}{x}" for x in os.listdir(ssavers_filepath)]
         print(self.screensavers)
 
         self.curr_ssaver_index = 0
-        image = Image.open(self.screensavers[self.curr_ssaver_index])
-        img2 = image.resize((self.winfo_width(), self.winfo_height()))
-        display = ImageTk.PhotoImage(img2)
-        self.curr_image = tk.Label(self, image = display)        
-        self.curr_image.image = display
-        self.curr_image.grid(row=0, column=0, sticky="NEWS")
+        display = Image.open(self.screensavers[self.curr_ssaver_index])
+        display = display.resize((self.master.winfo_width(), self.master.winfo_height()))
+        display = ImageTk.PhotoImage(display)
+        self.curr_image = tk.Label(self, image = display)
+        self.curr_image.grid(row=0, column=0, sticky="NEWS")        
+        self.curr_image.photo = display
+        
         
 
         self.start_menu_time = time.time()
@@ -126,7 +138,7 @@ class Start_Window(tk.Frame):
 
     #Press start button to go to the main window
     def _start_action(self, event):
-        print("chaging page")
+        print("changing page")
         self.master.switch_frame(Main_Window)
 
 
@@ -141,15 +153,15 @@ class Start_Window(tk.Frame):
             self.curr_ssaver_index = self.curr_ssaver_index + 1
             
 
-        image = Image.open(self.screensavers[self.curr_ssaver_index])
-        img2 = image.resize((self.winfo_width(), self.winfo_height()))
-        display = ImageTk.PhotoImage(img2)
+        display = Image.open(self.screensavers[self.curr_ssaver_index])
+        display = display.resize((self.master.winfo_width(), self.master.winfo_height()))
+        display = ImageTk.PhotoImage(display)
         self.curr_image = tk.Label(self, image = display)        
-        self.curr_image.image = display
         self.curr_image.grid(row=0, column=0, sticky="NEWS")
+        self.curr_image.photo = display        
         self.curr_image.bind("<Button-1>", self._start_action)
 
-        print(self.curr_image)
+      
 
     
     #Return the time since the last screensaver cjagem
@@ -166,57 +178,53 @@ class Main_Window(tk.Frame):
 
     #Load the main page 
     def __init__(self, master):
+        
         tk.Frame.__init__(self, master)
         
         #Format the master
         self.master = master
         self.master.start_time = time.time()
+    
+        overview_fp = self.master.base_filepath + "/images/menus/overview.png"
+
+        img = Image.open(overview_fp)
+        img2 = img.resize((self.master.winfo_width(), self.master.winfo_height()))
+        display = ImageTk.PhotoImage(img2)        
+        curr_image = tk.Label(self, image = display)       
+        curr_image.grid(row=0, column=0, sticky="NEWS")
+        curr_image.resized_photo = display
+
+        curr_image.bind("<Button-1>", self._open_overview)
 
         
-        #Configure the columns
-        for i in range(6):
-            self.grid_columnconfigure(i, weight=1)        
-        #Configure the rows
-        self.grid_rowconfigure(0, weight=1)       
-
-
-
-        #Iteratively create the 6 buttons - predetermined titles/colours
-        BUTTON_TITLES = ["MARINE", "AVIATION", "DEFENCE", "INDUSTRIAL", "MEDICAL", "SPACE"]
-        BUTTON_COLOURS = ["pale green", "light goldenrod", "seashell3", "powder blue", "coral1", "firebrick1"]
-
-        button_list = []
-        row = 0
-        curr_column = 0        
-
-        #Create all the buttons
-        for title in BUTTON_TITLES:
-            #Creates the button
-            button = tk.Button(self, text=title, command=lambda title = title: self._open_overview(title), bg=BUTTON_COLOURS[curr_column], height="10")
-            button.grid(row = row, column = curr_column, sticky="NESW")
-            button.grid_columnconfigure(curr_column, weight=1)
-            self.grid_columnconfigure(curr_column, weight = 1)
-            button_list.append(button)
-            curr_column = curr_column + 1
-
-
-        #Create the bottom button
-        title = "Capabilities"
-        button = tk.Button(self, text= title, command=lambda title = title: self._open_overview(title), bg="OrangeRed2", width=15)
-        button.grid(row = 2, columnspan=6, sticky="NESW")
-        button_list.append(button)
-
-        
-
+    
 
 
     #Open an overview page 
-    def _open_overview(self, butt_label):
+    def _open_overview(self, event):
         
-        print(butt_label)       
+        butt_label = ""
+
+        coords = (event.x, event.y)
+
+        #Hardcoded :(
+        #Calibrated to match the touchscreen image coords
+        match coords:
+            case coords as x, y if y < 200:
+                print("SCORE")
+                return
+            case coords as x, y if y > 200:
+                print("MISS")
+                return
+            case _:
+                return           
+
+        
+             
+
 
         #Open the relevant overview page
-        self.master.switch_frame(Overview_Window, arg = butt_label)
+        self.master.switch_frame(Overview_Window, arg = arg)
 
 
 
@@ -230,155 +238,37 @@ class Overview_Window(tk.Frame):
         self.master = master
         self.master.start_time = time.time()
 
+        #Pick which page to show based on the page config
 
-        #Remove slashes 
-        self.page_config = page_config
-        
+        overview_fp = self.master.base_filepath + "/images/menus/" + page_config + ".png"
 
-        try:
-            self._load_page()
-        except:
-            print("ERROR: Page loading error")
+        img = Image.open(overview_fp)
+        img2 = img.resize((self.master.winfo_width(), self.master.winfo_height()))
+        display = ImageTk.PhotoImage(img2)        
+        curr_image = tk.Label(self, image = display)       
+        curr_image.grid(row=0, column=0, sticky="NEWS")
+        curr_image.resized_photo = display
 
-        #GUI 
-        #Set the page colour        
-        self["bg"] = self.page_col
-        
-        #Create top row buttons
-        #Iteratively create the 6 buttons - predetermined titles/colours
-        BUTTON_TITLES = ["MARINE", "AVIATION", "DEFENCE", "INDUSTRIAL", "MEDICAL", "SPACE", "Capabilities"]
-        BUTTON_COLOURS = ["pale green", "light goldenrod", "seashell3", "powder blue", "coral1", "firebrick1", "OrangeRed2"]
+        curr_image.bind("<Button-1>", self._open_overview)
 
-        button_list = []
-        row = 0
-        curr_column = 0        
-
-        #Create all the buttons on the top row (and the bits beneath them)
-        for title in BUTTON_TITLES:
-            #Creates the button
-            button = tk.Button(self, text=title, command=lambda title = title: self._open_overview(title), bg=BUTTON_COLOURS[curr_column], height="1")
-            button.grid(row = row, column = curr_column, sticky="NESW")
-            button.grid_columnconfigure(curr_column, weight=1)
-            button.grid_rowconfigure(row, weight = 1)
-            self.grid_columnconfigure(curr_column, minsize= 5,weight = 1)
-            button_list.append(button)
-
-            self.update()
-            
-
-            #Determine whether the spot below should be grey or not
-            blank_lab = tk.Label(self, text=" " * button.winfo_width() * 8) 
-            blank_lab.grid(row = row + 1, column = curr_column)
-
-            if title == self.page_config:
-                blank_lab["bg"] = BUTTON_COLOURS[curr_column]
-            else:
-                blank_lab["bg"] = "lavender"
-
-            curr_column = curr_column + 1
-        
-
-
-        #Place the product description label
-        desc_label = tk.Label(self, text=self.page_desc, bg = self.page_col, wraplength = 500, font = ("Arial", 10))
-        
-        desc_label.grid(row=2, rowspan = 2, columnspan=7, sticky="NESW")
-        
-
-        #Place the product title line
-        prod_label = tk.Label(self, text="Products", bg = "lavender")
-        prod_label.grid(row = 5, columnspan=7, stick = "NESW")
-
-
-        frame_list = []
-
-        
-        base_filepath = os.getcwd()
-        #Create new frames holding the images the name and the info
-        #Create a new frame
-        generic_frame = tk.Frame(self, bg = self.page_col, highlightbackground="black", highlightthickness=0)
-        for i in range(len(self.strings)):
-            
-
-
-            #Place the label
-            label = tk.Label(generic_frame, text=self.strings[i], bg = self.page_col)
-            
-            label.grid(row = 0, column = i)
-            
-            #Place the image
-            #Get the filepath of the image
-            #On pi ~ base_filepath = "/home/pi/diorama_app/image/ + self.images[i]"
-            filepath = base_filepath + "/images/" + self.images[i]            
-            #Open the image and resize it 
-            img = Image.open(filepath)
-            resized_img = img.resize((100, 75), Image.Resampling.NEAREST)
-            img2 = ImageTk.PhotoImage(resized_img)            
-            
-            #Place the image in a label in a computed spot
-            label = tk.Label(generic_frame, image = img2, bg = self.page_col)
-            
-            label.grid(row = 1, rowspan = 2, column = i, pady =2)        
-            label.image = img2   
-            label.grid_rowconfigure(1, weight=1)
-            label.grid_columnconfigure(1, weight=1)
-
-            #Place the information
-            #Create the text for the label
-            b = "•"
-            text = ""
-            for inf in self.info[i]:
-                text = text + b + inf + "\n"
-
-            label = tk.Label(generic_frame, text=text, bg=self.page_col)
-            
-            label.grid(row = 3, rowspan=2, column = i)            
-
-            frame_list.append(generic_frame)
-
-
-
-
-        #Place the frame into the mainframe            
-        generic_frame.grid(row = 6, rowspan = 3, column = 0, columnspan=8)
-        
-
-
-
-
-
-
-    #Loads all the relevant information onto the page
-    #Updates the images and the labels on the page
-    def _load_page(self):
-
-        #Create the page handler
-        handle = ph.capa_page_handler()
-        #Have the page handler load all the releveant information
-        handle.load_page(self.page_config)
-
-        #Get the strings and the filepaths for the images
-        self.strings = handle.strings
-        self.images = handle.images
-        self.info = handle.info
-        self.page_col = handle.pg_col
-        self.page_desc = handle.pg_desc
-        
-
-        #Check that the lengths are the same
-        if len(self.strings) != len(self.images):
-            raise Exception("Strings/Images not matching")
-        
-        #Load complete
-        loaded = 1 
-
-        return loaded
-    
+ 
 
     #Open an overview page 
-    def _open_overview(self, butt_label):
+    def _open_overview(self, event):
         
-        print(butt_label)       
+        coords = (event.x, event.y)
+
+        #Hardcoded :(
+        #Calibrated to match the touchscreen image coords
+        match coords:
+            case coords as x, y if y < 200:
+                print("SCORE")
+                return
+            case coords as x, y if y > 200:
+                print("MISS")
+                return
+            case _:
+                return               
 
         #Open the relevant overview page
         self.master.switch_frame(Overview_Window, arg = butt_label)
@@ -388,7 +278,7 @@ class Overview_Window(tk.Frame):
 if __name__ == "__main__":
 
     print("Main app starting up")    
-  
+    print(platform.platform())
     
 
     app = app()
@@ -406,7 +296,6 @@ if __name__ == "__main__":
 
             #If on the main page - every 5 seconds change the image
             if app.start_flag and (x := app._frame.start_menu_tot_time()) > 0 and x % 5 == 0:
-                print("CHANGE")
                 app._frame._next_image()
 
 
