@@ -103,6 +103,8 @@ class Start_Window(tk.Frame):
         lin_pic_width = 300
         lin_pic_height = 250
         
+        #On pi ~ img_filepath = "/home/pi/diorama_app/image/lin_logo.jpg"
+
         img_filepath = os.getcwd() + "/images/lin_logo.jpg"
         lin_img = Image.open(img_filepath)
         resized_lin_img = lin_img.resize((lin_pic_width, lin_pic_height))
@@ -280,6 +282,7 @@ class Overview_Window(tk.Frame):
             
             #Place the image
             #Get the filepath of the image
+            #On pi ~ base_filepath = "/home/pi/diorama_app/image/ + self.images[i]"
             filepath = base_filepath + "/images/" + self.images[i]            
             #Open the image and resize it 
             img = Image.open(filepath)

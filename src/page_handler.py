@@ -31,7 +31,7 @@ class capa_page_handler:
         
 
         #Set the base filepath to the correct one 
-        
+        #On pi ~ base_filepath = "/home/pi/diorama_app/configs/"
         base_filepath =  os.getcwd() + "/configs/"
         #Construct the filepath
         filepath = base_filepath + file + ".txt"
