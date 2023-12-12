@@ -1,7 +1,7 @@
 """
 Author: Joe Ingham
-Last Updated: 07/12/2023
-Version: 0.6
+Last Updated: 12/12/2023
+Version: 0.7
 """
 
 import tkinter as tk
@@ -118,7 +118,7 @@ class Start_Window(tk.Frame):
         ssavers_filepath = self.master.base_filepath + "/images/Screensavers/"
 
         self.screensavers = [ f"{ssavers_filepath}{x}" for x in os.listdir(ssavers_filepath)]
-        print(self.screensavers)
+        
 
         self.curr_ssaver_index = 0
         display = Image.open(self.screensavers[self.curr_ssaver_index])
@@ -185,7 +185,7 @@ class Main_Window(tk.Frame):
         self.master = master
         self.master.start_time = time.time()
     
-        overview_fp = self.master.base_filepath + "/images/menus/overview.png"
+        overview_fp = self.master.base_filepath + "/images/menus/HomeScreen.png"
 
         img = Image.open(overview_fp)
         img2 = img.resize((self.master.winfo_width(), self.master.winfo_height()))
@@ -206,13 +206,16 @@ class Main_Window(tk.Frame):
         butt_label = ""
 
         coords = (event.x, event.y)
+        print(coords)
 
         #Hardcoded :(
         #Calibrated to match the touchscreen image coords
         match coords:
-            case coords as x, y if y < 200:
+            #Marine Button
+            case coords as x, y if x < (self.master.winfo_width()/2) and y > (self.master.winfo_height()/2) and y < (self.master.winfo_height() * 3/4):
                 print("SCORE")
-                return
+                butt_label = "MARINE"
+                
             case coords as x, y if y > 200:
                 print("MISS")
                 return
@@ -224,7 +227,7 @@ class Main_Window(tk.Frame):
 
 
         #Open the relevant overview page
-        self.master.switch_frame(Overview_Window, arg = arg)
+        self.master.switch_frame(Overview_Window, arg = butt_label)
 
 
 
