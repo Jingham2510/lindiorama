@@ -1,7 +1,7 @@
 """
 Author: Joe Ingham
-Last Updated: 12/12/2023
-Version: 0.7
+Last Updated: 22/01/2024
+Version: 0.8
 """
 
 import tkinter as tk
@@ -38,6 +38,8 @@ class app(tk.Tk):
 
         #Setup the window
         self.title = ("Linwave Diorama App")
+
+        self.curr_page = "HOME"
         
 
         #Configure the main window
@@ -58,6 +60,10 @@ class app(tk.Tk):
         self.after(500, lambda: self.attributes("-fullscreen", True))
 
 
+
+        
+
+
     
     #Switches to the desired frame window
     def switch_frame(self, frame_class, *, arg = None):
@@ -68,23 +74,36 @@ class app(tk.Tk):
         #Determines which frame to go to
         match arg:
             #Sector overview page            
-            case ("MARINE" | "AVIATION" | "DEFENCE" | "INDUSTRIAL" | "MEDICAL" | "SATCOM") as s:
-                print("overview page")
-                new_frame = frame_class(self, s)
+            case ("MARINE" | "AVIATION" | "DEFENCE" | "INDUSTRY" | "MEDICAL" | "SATCOM" | "CAPABILITIES1") as s:
+                self.curr_page = s
+                new_frame = frame_class(self, s)    
+
                 
-            
-            #Futureprrofing for the possibility that the capabilities page is different
-            case("CAPABILITIES") as s :
-                print("capabilities page")
-                new_frame = frame_class(self, s)
-                
+            case "MORE" if self.curr_page == "CAPABILITIES1":
+                self.curr_page = "CAPABILITIES2"
+                new_frame = frame_class(self, "CAPABILITIES2")
+
+            case "MORE" if self.curr_page == "CAPABILITIES2":
+                self.curr_page = "CAPABILITIES3"
+                new_frame = frame_class(self, "CAPABILITIES3")
+
+            case "BACK" if self.curr_page == "CAPABILITIES2":
+                self.curr_page = "CAPABILITIES1"
+                new_frame = frame_class(self, "CAPABILITIES1")
+
+            case "BACK" if self.curr_page == "CAPABILITIES3":
+                self.curr_page = "CAPABILITIES2"
+                new_frame = frame_class(self, "CAPABILITIES2") 
+
+
             #Go to the home page
             case("Return"):
-                print("Home page")
+                self.curr_page = "HOME"
                 new_frame = frame_class(self)                   
 
             #Go to the specified page 
             case _:
+                self.curr_page = "ALARIS"
                 new_frame = frame_class(self)     
                 
               
@@ -94,9 +113,13 @@ class app(tk.Tk):
             self._frame.destroy()
         
 
+        print(f"Curr Page : {self.curr_page}")
+
         #Creates the new frame and places it 
         self._frame = new_frame
         self._frame.grid(row = 0, column = 0, sticky = "NESW")
+
+        
 
 
     #Get the current idle time on the page (i.e. how long the page has been open)
@@ -203,7 +226,7 @@ class Main_Window(tk.Frame):
         self.master.start_time = time.time()
     
         #Determine the filepath for the menu screen image
-        overview_fp = self.master.base_filepath + "/images/menus/HomeScreen.png"
+        overview_fp = self.master.base_filepath + "/images/menus/ALARIS.png"
 
         #Load the menu screen image
         img = Image.open(overview_fp)
@@ -236,40 +259,38 @@ class Main_Window(tk.Frame):
 
         #Ifelse rather than match because no pattern matching, always x,y format
 
-        #Check if capabilities:
-        if y >= page_height  * 3/4:
-            butt_label = "CAPABILITIES"        
 
+        #Check that the click is at the top of the page
+        if y < page_height * 1/8:            
 
-        #Check the x coordinate
-        #Left half
-        elif x <= page_width/2:
-            #Defence Page
-            if y < page_height * 1/4:
+            if x < page_width * 1/8:
+                self.master.switch_frame(Main_Window)
+                return
+
+            elif x > page_width * 1/8 and x < page_width * 2/8:
                 butt_label = "DEFENCE"
-            #Aviation Page
-            if y > page_height * 1/4 and y < page_height / 2:
-                butt_label = "AVIATION"            
-            #Marine page
-            elif y > page_height/2:
+
+            elif x > page_width * 2/8 and x < page_width * 3/8:
+                butt_label = "AVIATION"
+
+            elif x > page_width * 3/8 and x < page_width * 4/8:
                 butt_label = "MARINE"
 
-        #Right half of the page
-        elif x > page_width/2:
-            #Medical Page
-            if y < page_height * 1/4:
+            elif x > page_width * 4/8 and x < page_width * 5/8:
                 butt_label = "MEDICAL"
-            #Industrial Page
-            if y > page_height * 1/4 and y < page_height / 2:
-                butt_label = "INDUSTRIAL"
-            #Sat comms page
-            if y > page_height/2:
-                butt_label = "SATCOM"        
+
+            elif x > page_width * 5/8 and x < page_width * 6/8:
+                butt_label = "INDUSTRY"
+            
+            elif x > page_width * 6/8 and x < page_width * 7/8:
+                butt_label = "SATCOM"
+            
+            elif x > page_width * 7/8: 
+                butt_label = "CAPABILITIES1"      
 
      
 
         
-        print(butt_label)
 
         #Open the relevant overview page
         self.master.switch_frame(Overview_Window, arg = butt_label)
@@ -318,46 +339,72 @@ class Overview_Window(tk.Frame):
         page_height = self.master.winfo_height()
 
 
-        #Check that the click is at the top of the page
-        if y < page_height * 1/8:
+        #Check the capabilities page - and which buttons are pressed
+        if "CAPABILITIES" in self.master.curr_page:           
+
+            if self.master.curr_page == "CAPABILITIES1":                
+                if y > page_height * 0.8 and y < page_height * 0.95:                    
+                    if x > page_width * 0.03 and x < page_width * 0.98:
+                        butt_label = "MORE"
+           
+
+            elif self.master.curr_page == "CAPABILITIES2":
+                if y > page_height * 0.8 and y < page_height * 0.95:
+                    if x > page_width * 0.02 and x < page_width * 0.48:
+                        butt_label = "BACK"
+                    
+                    elif x > page_width * 0.52 and x < page_width * 0.97:
+                        butt_label = "MORE"          
+
+            elif self.master.curr_page == "CAPABILITIES3":
+                if y > page_height * 0.8 and y < page_height * 0.95:                    
+                    if x > page_width * 0.03 and x < page_width * 0.98:
+                        butt_label = "BACK"
+
             
-            if x < page_width * 1/7:
-                butt_label = "MARINE"
+        
 
-            elif x > page_width * 1/7 and x < page_width * 2/7:
-                butt_label = "AVIATION"
 
-            elif x > page_width * 2/7 and x < page_width * 3/7:
+
+
+        #Check that the click is at the top of the page
+        if y < page_height * 1/8:            
+
+            if x < page_width * 1/8:
+                self.master.switch_frame(Main_Window)
+                return
+
+            elif x > page_width * 1/8 and x < page_width * 2/8:
                 butt_label = "DEFENCE"
 
-            elif x > page_width * 3/7 and x < page_width * 4/7:
-                butt_label = "INDUSTRIAL"
+            elif x > page_width * 2/8 and x < page_width * 3/8:
+                butt_label = "AVIATION"
 
-            elif x > page_width * 4/7 and x < page_width * 5/7:
+            elif x > page_width * 3/8 and x < page_width * 4/8:
+                butt_label = "MARINE"
+
+            elif x > page_width * 4/8 and x < page_width * 5/8:
                 butt_label = "MEDICAL"
+
+            elif x > page_width * 5/8 and x < page_width * 6/8:
+                butt_label = "INDUSTRY"
             
-            elif x > page_width * 5/7 and x < page_width * 6/7:
+            elif x > page_width * 6/8 and x < page_width * 7/8:
                 butt_label = "SATCOM"
             
-            elif x > page_width * 6/7: 
-                butt_label = "CAPABILITIES"
+            elif x > page_width * 7/8: 
+                butt_label = "CAPABILITIES1"
 
 
 
-        #If not exit the function        
-        else:
-            return    
 
+
+        if butt_label != "":
         
         
-        print(butt_label)
-
-        #Open the relevant overview page
-        #self.master.switch_frame(Overview_Window, arg = butt_label)
-
-        #Open the relevant overview page
-        self.master.switch_frame(Overview_Window, arg = butt_label)
-        
+            #Open the relevant overview page
+            self.master.switch_frame(Overview_Window, arg = butt_label)
+            
 
 
 
