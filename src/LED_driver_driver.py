@@ -17,6 +17,8 @@ import datetime
 class LED_driver:
 
 
+    
+
 
     #Creates the LED driver
     def __init__(self):
@@ -36,6 +38,9 @@ class LED_driver:
         self.marine_group = (12, 18, 19, 20, 21, 21 ,23)
         self.space_group = (13, 14)
         self.medical_group = (15, 16, 17)
+
+        #Counter to track the ss mode
+        self.SS_MODE = 0
 
 
         
@@ -70,10 +75,43 @@ class LED_driver:
             case "RANDOM":
                 self._random_mode()
 
+            case "SCREENSAVER":
+                self._screensaver_mode()
+            
             #If anything else set the LEDS to default
             case _:
                 self._default_mode()
                 
+
+
+    #Goes through the other modes changing each time
+    def _screensaver_mode(self):
+
+        match self.SS_mode:
+            case 0:
+                self._defence_mode()
+            case 1:
+                self._aviation_mode()
+            case 2:
+                self._marine_mode()
+            case 3:
+                self._medical_mode()
+            case 4:
+                self._industrial_mode()
+            case 5:
+                self._satcom_mode()
+            case 6:
+                self._industrial_mode()
+            case 7:
+                self._default_mode()
+                self.SS_MODE = -1
+            #Backup option
+            case _:
+                self.SS_MODE = 0
+
+        self.SS_MODE = self.SS_MODE + 1
+            
+            
 
 
 

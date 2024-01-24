@@ -1,7 +1,7 @@
 """
 Author: Joe Ingham
 Last Updated: 22/01/2024
-Version: 0.9
+Version: 1.0
 """
 
 import tkinter as tk
@@ -45,6 +45,7 @@ class app(tk.Tk):
         #Create the LED driver
         self.LED_driver = ld.LED_driver()
         self.LED_driver.set_led_mode("RANDOM")
+        #self.LED_driver.set_led_mode("SCREENSAVER")
 
         #Configure the main window
         self.grid_columnconfigure(0, weight=1)                 
@@ -203,8 +204,10 @@ class Start_Window(tk.Frame):
         self.curr_image.grid(row=0, column=0, sticky="NEWS")
         self.curr_image.photo = display        
         self.curr_image.bind("<Button-1>", self._start_action)
+        
         #Randomly change the LEDS
         self.LED_driver.set_led_mode("RANDOM")
+        #self.LED_driver.set_led_mode("SCREENSAVER")
 
 
 
