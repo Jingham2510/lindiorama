@@ -1,7 +1,7 @@
 """
 Author: Joe Ingham
 Last Updated: 22/01/2024
-Version: 0.8
+Version: 0.9
 """
 
 import tkinter as tk
@@ -10,6 +10,7 @@ import os
 import time
 import sys
 import platform
+import LED_driver_driver as ld
 
 """
 The main applet that controls the raspberry pi for the Alaris Linwave Diorama
@@ -38,9 +39,12 @@ class app(tk.Tk):
 
         #Setup the window
         self.title = ("Linwave Diorama App")
-
+        #Set the current page
         self.curr_page = "HOME"
         
+        #Create the LED driver
+        self.LED_driver = ld.LED_driver()
+        self.LED_driver.set_led_mode("RANDOM")
 
         #Configure the main window
         self.grid_columnconfigure(0, weight=1)                 
@@ -76,7 +80,8 @@ class app(tk.Tk):
             #Sector overview page            
             case ("MARINE" | "AVIATION" | "DEFENCE" | "INDUSTRY" | "MEDICAL" | "SATCOM" | "CAPABILITIES1") as s:
                 self.curr_page = s
-                new_frame = frame_class(self, s)    
+                new_frame = frame_class(self, s)
+                self.LED_driver.set_led_mode(s)
 
                 
             case "MORE" if self.curr_page == "CAPABILITIES1":
@@ -198,6 +203,8 @@ class Start_Window(tk.Frame):
         self.curr_image.grid(row=0, column=0, sticky="NEWS")
         self.curr_image.photo = display        
         self.curr_image.bind("<Button-1>", self._start_action)
+        #Randomly change the LEDS
+        self.LED_driver.set_led_mode("RANDOM")
 
 
 
